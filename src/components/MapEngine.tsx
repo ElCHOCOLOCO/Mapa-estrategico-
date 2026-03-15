@@ -45,19 +45,101 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
     map.current.on('load', () => {
       if (!map.current) return;
 
+      // --- HIDE ALL BASE LAYERS FOR CLEAN SLATE ---
+      const style = map.current.getStyle();
+      if (style && style.layers) {
+        style.layers.forEach(layer => {
+          map.current?.setLayoutProperty(layer.id, 'visibility', 'none');
+        });
+      }
+
+      // Add Parchment Background
+      map.current.addLayer({
+        'id': 'parchment-bg',
+        'type': 'background',
+        'paint': {
+          'background-color': '#f4f1ea'
+        }
+      });
+
       map.current.addSource('mapbox-dem', {
-        type: 'raster-dem',
-        url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
-        tileSize: 512,
-        maxzoom: 14
+        'type': 'raster-dem',
+        'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
+        'tileSize': 512,
+        'maxzoom:': 14
       });
       
-      map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 2.5 }); // High relief
+      map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 2.5 });
+
+      // UFJF Perimeter GeoJSON
+      const ufjfGeoJSON: any = {
+        'type': 'Feature',
+        'geometry': {
+          'type': 'Polygon',
+          'coordinates': [[
+            [-43.3765, -21.7830],
+            [-43.3795, -21.7780],
+            [-43.3745, -21.7730],
+            [-43.3620, -21.7700],
+            [-43.3610, -21.7740],
+            [-43.3660, -21.7800],
+            [-43.3765, -21.7830]
+          ]]
+        }
+      };
+
+      map.current.addSource('ufjf-perimeter', {
+        'type': 'geojson',
+        'data': ufjfGeoJSON
+      });
+
+      // Show Hillshade only for UFJF area (Optional, but gives topography)
+      map.current.addLayer({
+        'id': 'ufjf-hillshade',
+        'type': 'hillshade',
+        'source': 'mapbox-dem',
+        'paint': {
+          'hillshade-exaggeration': 0.5
+        }
+      });
+
+      // 3D Buildings - Filtered to be within the UFJF area
+      // Mapbox "within" expression works with GeoJSON sources
+      map.current.addLayer({
+        'id': '3d-buildings',
+        'source': 'composite',
+        'source-layer': 'building',
+        'filter': ['all', 
+          ['==', 'extrude', 'true'], 
+          ['within', ufjfGeoJSON]
+        ],
+        'type': 'fill-extrusion',
+        'minzoom': 15,
+        'paint': {
+          'fill-extrusion-color': '#8b7d6b',
+          'fill-extrusion-height': ['get', 'height'],
+          'fill-extrusion-base': ['get', 'min_height'],
+          'fill-extrusion-opacity': 0.9
+        }
+      });
+
+      // Roads - Filtered to be within UFJF area
+      map.current.addLayer({
+        'id': 'ufjf-roads',
+        'source': 'composite',
+        'source-layer': 'road',
+        'filter': ['within', ufjfGeoJSON],
+        'type': 'line',
+        'paint': {
+          'line-color': '#d4c9b0',
+          'line-width': 2
+        }
+      });
 
       map.current.setFog({
           'range': [0.5, 10],
-          'color': '#f4f1ea', // Match parchment background
-          'high-color': '#e5c07b', // Golden horizon
+          'color': '#f4f1ea',
+          'high-color': '#e5c07b',
           'space-color': '#f4f1ea',
           'horizon-blend': 0.1
       });
@@ -73,64 +155,10 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
               'sky-atmosphere-halo-color': '#e5c07b'
           }
       });
-
-      // 3D Buildings - Filtered for UFJF area locally
-      map.current.addLayer({
-        'id': '3d-buildings',
-        'source': 'composite',
-        'source-layer': 'building',
-        'filter': ['all', ['==', 'extrude', 'true'], ['>', 'height', 0]],
-        'type': 'fill-extrusion',
-        'minzoom': 15,
-        'paint': {
-          'fill-extrusion-color': '#8b7d6b',
-          'fill-extrusion-height': ['get', 'height'],
-          'fill-extrusion-base': ['get', 'min_height'],
-          'fill-extrusion-opacity': 0.8
-        }
-      });
-
-      // --- ISOLATION MASK ---
-      // A large polygon covering the world with a hole in UFJF
-      const UFJF_PERIMETER = [
-        [-43.3765, -21.7830], // FAMED / Hospital area
-        [-43.3795, -21.7780], // Reitoria / Ring West
-        [-43.3745, -21.7730], // Ring North
-        [-43.3620, -21.7700], // Portão Norte
-        [-43.3610, -21.7740], // ICH area
-        [-43.3660, -21.7800], // Law / Ring South
-        [-43.3765, -21.7830]  // Back to FAMED
-      ];
-
-      map.current.addSource('ufjf-mask', {
-        'type': 'geojson',
-        'data': {
-          'type': 'Feature',
-          'geometry': {
-            'type': 'Polygon',
-            'coordinates': [
-              [
-                [-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90] // World
-              ],
-              UFJF_PERIMETER // The "hole"
-            ]
-          }
-        }
-      });
-
-      map.current.addLayer({
-        'id': 'ufjf-mask-fill',
-        'type': 'fill',
-        'source': 'ufjf-mask',
-        'paint': {
-          'fill-color': '#f4f1ea', // Match parchment
-          'fill-opacity': 1.0
-        }
-      });
-
-      // Hide roads and labels outside the perimeter via filters if possible
-      // or simply rely on the solid mask covering them.
     });
+
+    return () => map.current?.remove();
+  }, []);
 
     return () => map.current?.remove();
   }, []);

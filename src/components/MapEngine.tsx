@@ -74,21 +74,62 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
           }
       });
 
-      // 3D Buildings
+      // 3D Buildings - Filtered for UFJF area locally
       map.current.addLayer({
         'id': '3d-buildings',
         'source': 'composite',
         'source-layer': 'building',
-        'filter': ['==', 'extrude', 'true'],
+        'filter': ['all', ['==', 'extrude', 'true'], ['>', 'height', 0]],
         'type': 'fill-extrusion',
         'minzoom': 15,
         'paint': {
-          'fill-extrusion-color': '#8b7d6b', // Stone/historical building color
+          'fill-extrusion-color': '#8b7d6b',
           'fill-extrusion-height': ['get', 'height'],
           'fill-extrusion-base': ['get', 'min_height'],
           'fill-extrusion-opacity': 0.8
         }
       });
+
+      // --- ISOLATION MASK ---
+      // A large polygon covering the world with a hole in UFJF
+      const UFJF_PERIMETER = [
+        [-43.3765, -21.7830], // FAMED / Hospital area
+        [-43.3795, -21.7780], // Reitoria / Ring West
+        [-43.3745, -21.7730], // Ring North
+        [-43.3620, -21.7700], // Portão Norte
+        [-43.3610, -21.7740], // ICH area
+        [-43.3660, -21.7800], // Law / Ring South
+        [-43.3765, -21.7830]  // Back to FAMED
+      ];
+
+      map.current.addSource('ufjf-mask', {
+        'type': 'geojson',
+        'data': {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Polygon',
+            'coordinates': [
+              [
+                [-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90] // World
+              ],
+              UFJF_PERIMETER // The "hole"
+            ]
+          }
+        }
+      });
+
+      map.current.addLayer({
+        'id': 'ufjf-mask-fill',
+        'type': 'fill',
+        'source': 'ufjf-mask',
+        'paint': {
+          'fill-color': '#f4f1ea', // Match parchment
+          'fill-opacity': 1.0
+        }
+      });
+
+      // Hide roads and labels outside the perimeter via filters if possible
+      // or simply rely on the solid mask covering them.
     });
 
     return () => map.current?.remove();

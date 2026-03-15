@@ -84,7 +84,8 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
             [-43.3660, -21.7800],
             [-43.3765, -21.7830]
           ]]
-        }
+        },
+        'properties': {}
       };
 
       map.current.addSource('ufjf-perimeter', {
@@ -144,7 +145,8 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
               ],
               ufjfGeoJSON.geometry.coordinates[0] // The "hole"
             ]
-          }
+          },
+          'properties': {}
         }
       });
 

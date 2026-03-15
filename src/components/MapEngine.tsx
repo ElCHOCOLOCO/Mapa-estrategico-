@@ -34,10 +34,10 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
       bearing: -20,
       antialias: true,
       maxBounds: [
-        [-43.385, -21.790], // Southwest
-        [-43.355, -21.760]  // Northeast
+        [-43.395, -21.805], // South-West (expanded slightly to cover FAMED area)
+        [-43.355, -21.755]  // North-East (expanded slightly for Portão Norte)
       ],
-      minZoom: 14.5,
+      minZoom: 15.2,
       maxZoom: 18,
       renderWorldCopies: false
     });

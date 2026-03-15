@@ -71,7 +71,6 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
       
       map.current.setTerrain({ source: 'mapbox-dem', exaggeration: 2.5 });
 
-      // UFJF Perimeter GeoJSON
       const ufjfGeoJSON: any = {
         'type': 'Feature',
         'geometry': {
@@ -93,7 +92,7 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
         'data': ufjfGeoJSON
       });
 
-      // Show Hillshade only for UFJF area (Optional, but gives topography)
+      // Show Hillshade
       map.current.addLayer({
         'id': 'ufjf-hillshade',
         'type': 'hillshade',
@@ -103,16 +102,12 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
         }
       });
 
-      // 3D Buildings - Filtered to be within the UFJF area
-      // Mapbox "within" expression works with GeoJSON sources
+      // 3D Buildings - Show everywhere (will be masked outside)
       map.current.addLayer({
         'id': '3d-buildings',
         'source': 'composite',
         'source-layer': 'building',
-        'filter': ['all', 
-          ['==', 'extrude', 'true'], 
-          ['within', ufjfGeoJSON]
-        ],
+        'filter': ['==', 'extrude', 'true'],
         'type': 'fill-extrusion',
         'minzoom': 15,
         'paint': {
@@ -123,16 +118,45 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
         }
       });
 
-      // Roads - Filtered to be within UFJF area
+      // Roads
       map.current.addLayer({
         'id': 'ufjf-roads',
         'source': 'composite',
         'source-layer': 'road',
-        'filter': ['within', ufjfGeoJSON],
         'type': 'line',
         'paint': {
           'line-color': '#d4c9b0',
-          'line-width': 2
+          'line-width': 1.5
+        }
+      });
+
+      // --- EXTREME ISOLATION 3D MASK ---
+      // A large polygon covering the world with a hole in UFJF
+      map.current.addSource('ufjf-mask', {
+        'type': 'geojson',
+        'data': {
+          'type': 'Feature',
+          'geometry': {
+            'type': 'Polygon',
+            'coordinates': [
+              [
+                [-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90] // World
+              ],
+              ufjfGeoJSON.geometry.coordinates[0] // The "hole"
+            ]
+          }
+        }
+      });
+
+      // Tall 3D Wall Mask to hide everything outside
+      map.current.addLayer({
+        'id': 'ufjf-mask-3d',
+        'type': 'fill-extrusion',
+        'source': 'ufjf-mask',
+        'paint': {
+          'fill-extrusion-color': '#f4f1ea',
+          'fill-extrusion-height': 500, // Very tall to hide buildings
+          'fill-extrusion-opacity': 1.0
         }
       });
 

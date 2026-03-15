@@ -1,0 +1,363 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+:root {
+  --bg-color: #f4f1ea; /* Parchment cream */
+  --panel-bg: rgba(45, 35, 25, 0.95); /* Deep leather brown */
+  --accent-gold: #c5a059;
+  --accent-gold-bright: #e5c07b;
+  --accent-red: #8b0000;
+  --text-main: #2d2319; /* Dark ink color */
+  --text-dim: #5d4d3d;
+  --border-tactical: 1px solid rgba(197, 160, 89, 0.4);
+  --shadow-tactical: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body, html, #root {
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  background-image: 
+    radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.05) 100%),
+    url('https://www.transparenttextures.com/patterns/old-map.png'); /* Subtle parchment texture */
+}
+
+.app-container {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+h1, h2, h3, .tactical-font {
+  font-family: 'Cinzel', serif;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.map-container {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+/* Tactical Overlay UI */
+.overlay-container {
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2rem;
+}
+
+.tactical-panel {
+  pointer-events: auto;
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: var(--border-tactical);
+  box-shadow: var(--shadow-tactical);
+  padding: 1.5rem;
+  border-radius: 2px; /* Sharper historical look */
+  position: relative;
+  color: #f4f1ea; /* Light parchment text for dark leather panels */
+}
+
+.tactical-panel::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border: 1px solid rgba(197, 160, 89, 0.15);
+  pointer-events: none;
+}
+
+.top-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.mission-brief {
+  max-width: 400px;
+}
+
+.mission-brief h1 {
+  font-size: 1.5rem;
+  color: var(--accent-gold-bright);
+  margin-bottom: 0.5rem;
+  text-shadow: 0 0 10px rgba(197, 160, 89, 0.4);
+}
+
+.mission-brief p {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.4;
+  border-left: 2px solid var(--accent-red);
+  padding-left: 1rem;
+}
+
+.status-bar {
+  display: flex;
+  gap: 2rem;
+  background: rgba(35, 25, 15, 0.85); /* Leather-tinted status bar */
+  padding: 0.75rem 2rem;
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+.status-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.status-label {
+  font-size: 0.6rem;
+  color: var(--accent-gold);
+  text-transform: uppercase;
+}
+
+.status-value {
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: #fff;
+}
+
+/* Mapbox Overrides */
+.mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left {
+  display: none !important;
+}
+
+/* Animations */
+@keyframes pulse-gold {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+/* Navigation Controls */
+.nav-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5rem 1rem;
+  min-width: 80px;
+}
+
+.nav-btn:hover {
+  color: var(--accent-gold-bright);
+}
+
+.nav-btn.active {
+  color: var(--accent-gold-bright);
+  border-bottom: 2px solid var(--accent-gold-bright);
+}
+
+/* Command Card */
+.command-card-container {
+  position: absolute;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 350px;
+  border-left: 4px solid var(--accent-gold);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(197, 160, 89, 0.2);
+  padding-bottom: 1rem;
+}
+
+.card-header h2 {
+  font-size: 0.9rem;
+  color: var(--accent-gold-bright);
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.data-row {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.icon-box {
+  color: var(--accent-gold);
+  padding-top: 2px;
+}
+
+.field-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.field-group label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+
+.field-group input {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(197, 160, 89, 0.3);
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  font-family: inherit;
+  width: 80px;
+  border-radius: 2px;
+}
+
+.humor-bar {
+  display: flex;
+  gap: 4px;
+  height: 8px;
+  cursor: pointer;
+}
+
+.humor-segment {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 1px;
+}
+
+.humor-segment.active {
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px var(--accent-gold);
+}
+
+.card-footer {
+  margin-top: 1rem;
+}
+
+.save-btn {
+  width: 100%;
+  background: var(--accent-red);
+  color: #fff;
+  border: none;
+  padding: 0.8rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  transition: all 0.2s ease;
+}
+
+.save-btn:hover {
+  background: #a00000;
+  box-shadow: 0 0 15px rgba(139, 0, 0, 0.5);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translate(20px, -50%); }
+  to { opacity: 1; transform: translate(0, -50%); }
+}
+
+/* Tactical Markers */
+.tactical-marker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+}
+
+.marker-flag {
+  width: 12px;
+  height: 12px;
+  background: var(--accent-gold);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(197, 160, 89, 0.6);
+  position: relative;
+}
+
+.marker-flag::after {
+  content: '';
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 15px;
+  background: var(--accent-gold);
+}
+
+.marker-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2px 6px;
+  border: 1px solid rgba(197, 160, 89, 0.3);
+  white-space: nowrap;
+  letter-spacing: 1px;
+  border-radius: 2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+}
+
+.tactical-marker:hover {
+  transform: scale(1.2) translateY(-5px);
+  z-index: 10;
+}
+
+.tactical-marker.selected .marker-flag {
+  background: var(--accent-red);
+  box-shadow: 0 0 20px var(--accent-red);
+  border-color: #fff;
+  transform: scale(1.3);
+}
+
+.tactical-marker.selected .marker-label {
+  border-color: var(--accent-red);
+  background: rgba(139, 0, 0, 0.8);
+}

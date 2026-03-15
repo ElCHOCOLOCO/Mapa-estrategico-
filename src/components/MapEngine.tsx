@@ -160,9 +160,6 @@ const MapEngine: React.FC<MapEngineProps> = ({ institutes, selectedId, onSelect 
     return () => map.current?.remove();
   }, []);
 
-    return () => map.current?.remove();
-  }, []);
-
   // Sync Markers
   useEffect(() => {
     if (!map.current) return;
